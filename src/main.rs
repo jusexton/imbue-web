@@ -2,8 +2,8 @@
 extern crate rocket;
 
 use imbue::{DataPoint, ImbueContext};
-use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
+use rocket::serde::json::Json;
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -41,7 +41,7 @@ struct DataPointWrapper {
 
 impl DataPointWrapper {
     fn new(x: f64, y: f64) -> Self {
-        DataPointWrapper { x, y}
+        DataPointWrapper { x, y }
     }
 }
 
@@ -50,7 +50,6 @@ impl From<DataPoint> for DataPointWrapper {
         DataPointWrapper::new(point.x, point.y)
     }
 }
-
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
