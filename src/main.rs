@@ -2,8 +2,8 @@
 extern crate rocket;
 
 use imbue::{DataPoint, ImbueContext};
-use rocket::serde::{Deserialize, Serialize};
 use rocket::serde::json::Json;
+use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -12,15 +12,13 @@ struct ImbueRequest {
     strategy: ImbueStrategy,
 }
 
-impl ImbueRequest {
-    fn new(dataset: Vec<DataPointWrapper>, strategy: ImbueStrategy) -> Self {
-        ImbueRequest { dataset, strategy }
-    }
-}
-
 impl From<ImbueRequest> for ImbueContext {
     fn from(request: ImbueRequest) -> Self {
-        let mapped = request.dataset.into_iter().map(|point| DataPoint::new(point.x, point.y)).collect();
+        let mapped = request
+            .dataset
+            .into_iter()
+            .map(|point| DataPoint::new(point.x, point.y))
+            .collect();
         ImbueContext::new(mapped)
     }
 }
@@ -107,57 +105,69 @@ mod server_tests {
     #[test]
     fn test_average_imbue() {
         let client = Client::tracked(rocket()).expect("Valid rocket instance required");
-        let body = ImbueRequest::new(
-            vec![
+        let body = {
+            let dataset = vec![
                 DataPointWrapper::new(1.0, 1.0),
                 DataPointWrapper::new(3.0, 3.0),
                 DataPointWrapper::new(5.0, 5.0),
-            ],
-            ImbueStrategy::Average,
-        );
+            ];
+            let strategy = ImbueStrategy::Average;
+            ImbueRequest { dataset, strategy }
+        };
         let response = client.post("/imbue").json(&body).dispatch();
         assert_eq!(response.status(), Status::Ok);
 
         let result = response.into_json::<ImbueResponse>().unwrap();
-        let expected_result = vec![DataPointWrapper::new(2.0, 2.0), DataPointWrapper::new(4.0, 4.0)];
+        let expected_result = vec![
+            DataPointWrapper::new(2.0, 2.0),
+            DataPointWrapper::new(4.0, 4.0),
+        ];
         assert_eq!(result.dataset, expected_result)
     }
 
     #[test]
     fn test_zeroed_imbue() {
         let client = Client::tracked(rocket()).expect("Valid rocket instance required");
-        let body = ImbueRequest::new(
-            vec![
+        let body = {
+            let dataset = vec![
                 DataPointWrapper::new(1.0, 1.0),
                 DataPointWrapper::new(3.0, 3.0),
                 DataPointWrapper::new(5.0, 5.0),
-            ],
-            ImbueStrategy::Zeroed,
-        );
+            ];
+            let strategy = ImbueStrategy::Zeroed;
+            ImbueRequest { dataset, strategy }
+        };
         let response = client.post("/imbue").json(&body).dispatch();
         assert_eq!(response.status(), Status::Ok);
 
         let result = response.into_json::<ImbueResponse>().unwrap();
-        let expected_result = vec![DataPointWrapper::new(2.0, 0.0), DataPointWrapper::new(4.0, 0.0)];
+        let expected_result = vec![
+            DataPointWrapper::new(2.0, 0.0),
+            DataPointWrapper::new(4.0, 0.0),
+        ];
         assert_eq!(result.dataset, expected_result)
     }
 
     #[test]
     fn test_last_known_imbue() {
         let client = Client::tracked(rocket()).expect("Valid rocket instance required");
-        let body = ImbueRequest::new(
-            vec![
+        let body = {
+            let dataset = vec![
                 DataPointWrapper::new(1.0, 1.0),
                 DataPointWrapper::new(3.0, 3.0),
                 DataPointWrapper::new(5.0, 5.0),
-            ],
-            ImbueStrategy::LastKnown,
-        );
+            ];
+            let strategy = ImbueStrategy::LastKnown;
+            ImbueRequest { dataset, strategy }
+        };
         let response = client.post("/imbue").json(&body).dispatch();
         assert_eq!(response.status(), Status::Ok);
 
         let result = response.into_json::<ImbueResponse>().unwrap();
-        let expected_result = vec![DataPointWrapper::new(2.0, 1.0), DataPointWrapper::new(4.0, 3.0)];
+        let expected_result = vec![
+            DataPointWrapper::new(2.0, 1.0),
+            DataPointWrapper::new(4.0, 3.0),
+        ];
         assert_eq!(result.dataset, expected_result)
     }
 }
